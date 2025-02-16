@@ -1,0 +1,17 @@
+# Sensitive files
+config.py
+database.json
+mappings.json
+mappings_old.json
+api_keys.json
+#.env
+data/
+
+# Ignore IDE files
+.vs/
+.vscode/
+__pycache__/
+
+# Ignore compiled files (if any)
+*.pyc
+*.pyo
