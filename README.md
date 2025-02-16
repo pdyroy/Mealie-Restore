@@ -1,3 +1,6 @@
+# Where possible backup before trying ANY of this
+**Scripts in this repo are MORE than capable of breaking your database**
+
 # Mealie Restore 🥗
 
 Mealie Restore is a collection of Python scripts for **restoring recipes, ingredients, categories, and other data** from a Mealie backup into a running Mealie instance.
@@ -15,7 +18,7 @@ Mealie Restore is a collection of Python scripts for **restoring recipes, ingred
 ### 1️⃣ **Clone the Repository**
 
 ```sh
-git clone https://github.com/YOUR_USERNAME/mealie-restore.git
+[git clone https://github.com/Aesgarth/Mealie-Restore.git]
 cd mealie-restore
 ```
 
