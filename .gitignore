@@ -1,5 +1,5 @@
 # Sensitive files
-config.py
+# config.py
 database.json
 mappings.json
 mappings_old.json
