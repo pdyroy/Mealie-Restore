@@ -1,7 +1,6 @@
-﻿
-import json
+﻿import json
 import requests
-from config import MEALIE_URL, HEADERS
+from config import MEALIE_URL, HEADERS, MEALIE_VERIFY_SSL
 
 # Load JSON data from the backup
 BACKUP_FILE = "database.json"  # Ensure this file is in the same folder
@@ -16,7 +15,7 @@ for tool in tools:
         "name": tool["name"],
         "householdsWithTool": []
     }
-    response = requests.post(f"{MEALIE_URL}/api/organizers/tools", json=payload, headers=HEADERS)
+    response = requests.post(f"{MEALIE_URL}/api/organizers/tools", json=payload, headers=HEADERS, verify=MEALIE_VERIFY_SSL)
     
     if response.status_code == 201:
         print(f"✔ Successfully added tool: {tool['name']}")

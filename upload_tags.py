@@ -1,7 +1,6 @@
-﻿
-import json
+﻿import json
 import requests
-from config import MEALIE_URL, HEADERS
+from config import MEALIE_URL, HEADERS, MEALIE_VERIFY_SSL
 
 # Load JSON data from the backup
 BACKUP_FILE = "database.json"  # Ensure this file is in the same folder
@@ -15,7 +14,7 @@ for tag in tags:
     payload = {
         "name": tag["name"]
     }
-    response = requests.post(f"{MEALIE_URL}/api/organizers/tags", json=payload, headers=HEADERS)
+    response = requests.post(f"{MEALIE_URL}/api/organizers/tags", json=payload, headers=HEADERS, verify=MEALIE_VERIFY_SSL)
     
     if response.status_code == 201:
         print(f"✔ Successfully added tag: {tag['name']}")

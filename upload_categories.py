@@ -1,6 +1,13 @@
 ﻿import json
 import requests
-from config import MEALIE_URL, HEADERS
+from config import MEALIE_URL, HEADERS, MEALIE_VERIFY_SSL
+
+# Disable SSL warnings for self-signed certificates only if verification is disabled
+import urllib3
+if not MEALIE_VERIFY_SSL:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+REQUEST_TIMEOUT = 30
 
 # Load JSON data from the backup
 BACKUP_FILE = "database.json"  # Ensure this file is in the same folder
@@ -14,7 +21,7 @@ for category in categories:
     payload = {
         "name": category["name"]
     }
-    response = requests.post(f"{MEALIE_URL}/api/organizers/categories", json=payload, headers=HEADERS)
+    response = requests.post(f"{MEALIE_URL}/api/organizers/categories", json=payload, headers=HEADERS, verify=MEALIE_VERIFY_SSL, timeout=REQUEST_TIMEOUT)
     
     if response.status_code == 201:
         print(f"✔ Successfully added category: {category['name']}")

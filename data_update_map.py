@@ -2,11 +2,17 @@
 import json
 import time
 import os
-from config import MEALIE_URL, HEADERS
+from config import MEALIE_URL, HEADERS, MEALIE_VERIFY_SSL
+
+# Disable SSL warnings for self-signed certificates only if verification is disabled
+import urllib3
+if not MEALIE_VERIFY_SSL:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Define file paths
 DATABASE_FILE = "database.json"
 MAPPINGS_FILE = "mappings.json"
+REQUEST_TIMEOUT = 30
 
 # Load old data from database.json
 def fetch_old_data(entity, key="name"):
@@ -42,7 +48,7 @@ def fetch_new_data(entity, key="name"):
     while True:
         url = f"{MEALIE_URL}/api/{entity}?page={page}&perPage={per_page}"
         print(f"📡 Fetching: {url}")
-        response = requests.get(url, headers=HEADERS)
+        response = requests.get(url, headers=HEADERS, verify=MEALIE_VERIFY_SSL, timeout=REQUEST_TIMEOUT)
         
         if response.status_code != 200:
             print(f"❌ Error fetching {entity}: {response.status_code}")

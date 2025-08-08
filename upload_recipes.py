@@ -1,8 +1,14 @@
-﻿
-import json
+﻿import json
 import requests
 import time
-from config import MEALIE_URL, HEADERS
+from config import MEALIE_URL, HEADERS, MEALIE_VERIFY_SSL
+
+REQUEST_TIMEOUT = 30
+
+# Disable SSL warnings for self-signed certificates only if verification is disabled
+import urllib3
+if not MEALIE_VERIFY_SSL:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Load JSON data from the backup
 BACKUP_FILE = "database.json"
@@ -17,7 +23,7 @@ created_recipes = {}
 # Step 1: Upload recipes
 for recipe in recipes:
     payload = {"name": recipe["name"]}
-    response = requests.post(f"{MEALIE_URL}/api/recipes", json=payload, headers=HEADERS)
+    response = requests.post(f"{MEALIE_URL}/api/recipes", json=payload, headers=HEADERS, verify=MEALIE_VERIFY_SSL, timeout=REQUEST_TIMEOUT)
 
     if response.status_code == 201:
         recipe_slug = response.json()

@@ -3,6 +3,8 @@
 
 # Mealie Restore 🥗
 
+> Fork notice: This is a fork of https://github.com/Aesgarth/Mealie-Restore. All credit to the original authors; this fork adds uv-based workflow, safer defaults, retries/timeouts, and domain-specific ingredient parsing tweaks.
+
 Mealie Restore is a collection of Python scripts for **restoring recipes, ingredients, categories, and other data** from a Mealie backup into a running Mealie instance.
 
 ## 📌 Features
@@ -11,121 +13,144 @@ Mealie Restore is a collection of Python scripts for **restoring recipes, ingred
 - Restore **recipe instructions** and **ingredients** with correct mappings.
 - Update existing recipes with missing details (e.g., nutrition, users).
 - Upload recipe images and associate them with correct recipes.
-- Uses **mappings.json** to correctly map old IDs to new ones.
+- Uses `mappings.json` to correctly map old IDs to new ones.
+- Optional LLM-assisted ingredient parsing via OpenRouter.
+- Safer defaults: SSL verification enabled by default, dry-run mode for updates.
 
-## 🚀 Installation
+## 🚀 Setup
 
-### 1️⃣ **Clone the Repository**
+### 1) Clone
 
-```sh
-[git clone https://github.com/Aesgarth/Mealie-Restore.git]
-cd mealie-restore
+```powershell
+git clone https://github.com/Aesgarth/Mealie-Restore.git
+cd Mealie-Restore
 ```
 
-### 2️⃣ **Create a Virtual Environment (Optional)**
+### 2) Install uv (Windows PowerShell)
 
-```sh
-python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+```powershell
+iwr https://astral.sh/uv/install.ps1 -UseBasicParsing | iex
+# Restart the terminal if `uv` isn't found
+uv --version
 ```
 
-### 3️⃣ **Install Dependencies**
+### 3) Install dependencies with uv
 
-```sh
-pip install -r requirements.txt
+```powershell
+uv sync
 ```
 
-### 4️⃣ **Set Up API Configuration**
+### 4) Configure environment
 
-- Create a `.env` file in the root folder with:
-  ```
-  MEALIE_URL=https://your-mealie-instance.com
-  API_TOKEN=your-secret-token
-  ```
-- Or modify `config.py` manually with your Mealie instance details.
+Create a `.env` file in the project root:
+
+```
+MEALIE_URL=https://your-mealie-instance
+MEALIE_API_TOKEN=your-api-token
+# Optional (default=true). Set to false to skip TLS verification for self-signed certs.
+MEALIE_VERIFY_SSL=true
+
+# Optional OpenRouter integration for ingredient parsing
+OPENROUTER_API_KEY=your-openrouter-key
+OPENROUTER_MODEL=openai/gpt-oss-20b:free
+
+# New defaults for fresh installs
+DEFAULT_USER_PASSWORD=ChangeMe123!
+DEFAULT_GROUP_ID=Home
+DEFAULT_HOUSEHOLD=Family
+```
+
+Notes:
+- Use only `MEALIE_API_TOKEN` for authentication.
+- When `MEALIE_VERIFY_SSL=false`, TLS warnings are muted and requests use `verify=False`.
 
 ---
 
-## ⚙️ **Usage**
+## 📦 Dependencies
 
-### **Step 1: Extract Your Backup**
+- Managed via `pyproject.toml`. Use `uv sync` to create/update the local `.venv`.
+- If you must use a requirements file, generate one separately and adjust the README accordingly.
 
-Extract the **entire backup zip file** into the project directory. Ensure that `database.json` and all necessary files are available in the root directory.
+Example run after syncing:
 
-
-
-### **Step 2: Run All Upload Scripts**
-
-Run the scripts **in order**:
-
-1. **Upload Categories**
-
-   ```sh
-   python upload_categories.py
-   ```
-
-2. **Upload Ingredients**
-
-   ```sh
-   python upload_ingredients.py
-   ```
-
-3. **Upload Tools**
-
-   ```sh
-   python upload_tools.py
-   ```
-
-4. **Upload Tags**
-
-   ```sh
-   python upload_tags.py
-   ```
-
-5. **Upload Recipes**
-
-   ```sh
-   python upload_recipes.py
-   ```
-
-6. **Upload Recipe Images**
-
-   ```sh
-   python upload_recipe_images.py
-   ```
-
-7. **Generate ID Mappings**
-
-   ```sh
-   python data_update_map.py
-   ```
-
-   - This script **fetches existing recipes** from Mealie and maps old recipe IDs to new ones.
-
-8. **Run All Update Scripts**
-
-   Run all scripts starting with `update_` in any order:
-
-   ```sh
-   python update_recipe_instructions.py
-   python update_recipe_ingredients.py
-   python update_recipes.py
-   ```
-
-   - This script **fetches existing recipes** from Mealie and maps old recipe IDs to new ones.
+```powershell
+uv run update_recipe_ingredients.py --dry-run
+```
 
 ---
 
-## 🛠 **Troubleshooting**
+## ⚙️ Usage
 
-- **Issue: \*\*\*\*****`database.json not found!`**\
-  ➔ Ensure your backup file is placed in the same folder as the scripts.
+1) Extract your backup ZIP so that `database.json` and the `data/recipes` folder exist in the repo root.
 
-- **Issue: \*\*\*\*****`mappings.json not found!`**\
-  ➔ Run `python data_update_map.py` first to create it.
+2) Restore order (run in this sequence):
 
-- **Issue: \*\*\*\*****`Permission denied (Windows)`**\
-  ➔ Close VS Code or other programs locking the files and try again.
+   1. Categories
+      ```powershell
+      uv run upload_categories.py
+      ```
+   2. Ingredients
+      ```powershell
+      uv run upload_ingredients.py
+      ```
+   3. Tools
+      ```powershell
+      uv run upload_tools.py
+      ```
+   4. Tags
+      ```powershell
+      uv run upload_tags.py
+      ```
+   5. Recipes
+      ```powershell
+      uv run upload_recipes.py
+      ```
+   6. Generate ID mappings (required before images)
+      ```powershell
+      uv run data_update_map.py
+      ```
+   7. Upload images
+      ```powershell
+      uv run upload_recipe_images.py
+      # or the robust version with retries
+      uv run upload_recipe_images_robust.py
+      ```
+   8. Update details (instructions and ingredients)
+      ```powershell
+      uv run update_recipe_instructions.py
+      # Safer run of ingredient updates (dry run first)
+      uv run update_recipe_ingredients.py --dry-run
+      # Then apply for real
+      uv run update_recipe_ingredients.py
+      ```
+
+### Target a subset of recipes
+
+```powershell
+uv run update_recipe_ingredients.py --slugs vegane-manti-mit-sojafullung,veganer-zitronen-upside-down-kuchen --dry-run
+```
+
+---
+
+## 🔐 Publishing & Safety
+
+- Secrets are read from `.env` and never hard-coded.
+- SSL verification is ON by default. Use `MEALIE_VERIFY_SSL=false` only for local/self-signed servers.
+- Ingredient updates support `--dry-run` to preview payload construction without changing your Mealie data.
+- Before publishing, ensure these are untracked/removed:
+  - `.env`, `.env.*`
+  - `database.json`, `database_backup_*.json`, `*.zip`
+  - `data/` (including `data/recipes/` images)
+  - `mappings.json`, `mappings_old.json`
+  - Any local virtual envs: `.venv/`, `venv/`
+
+---
+
+## 🛠 Troubleshooting
+
+- `database.json not found` → Extract your backup into the repo root.
+- `mappings.json not found` → Run `uv run data_update_map.py` first.
+- One recipe fails mapping (e.g., `test12`) → Add its mapping to `mappings.json` or exclude via `--slugs`.
 
 ---
 

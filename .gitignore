@@ -15,3 +15,24 @@ __pycache__/
 # Ignore compiled files (if any)
 *.pyc
 *.pyo
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Environment & secrets
+.env
+.env.*
+
+# Local data & backups
+/data/
+database.json
+database_backup_*.json
+*.zip
+
+# OS/editor
+.DS_Store
+Thumbs.db

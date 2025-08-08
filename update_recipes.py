@@ -2,9 +2,14 @@
 import json
 import time
 import os
+from config import MEALIE_URL, HEADERS, MEALIE_VERIFY_SSL
 
-# Import Mealie API details from config.py
-from config import MEALIE_URL, HEADERS
+REQUEST_TIMEOUT = 30
+
+# Disable SSL warnings for self-signed certificates only if verification is disabled
+import urllib3
+if not MEALIE_VERIFY_SSL:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Define the database file path
 DATABASE_FILE = "database.json"
@@ -143,7 +148,7 @@ def fetch_all_recipes():
 
     while True:
         url = f"{MEALIE_URL}/api/recipes?page={page}&perPage={per_page}"
-        response = requests.get(url, headers=HEADERS)
+        response = requests.get(url, headers=HEADERS, verify=MEALIE_VERIFY_SSL, timeout=REQUEST_TIMEOUT)
 
         print(f"🔄 Fetching recipes: Page {page}, Status Code: {response.status_code}")
 
@@ -185,7 +190,7 @@ def update_recipe(recipe, old_recipes, old_users, old_nutrition):
     recipe_slug = recipe["slug"]
     url = f"{MEALIE_URL}/api/recipes/{recipe_slug}"
     print(f"🔍 Sending update with missing fields: {json.dumps(missing_fields, indent=2)}")
-    response = requests.patch(url, headers=HEADERS, json=missing_fields)
+    response = requests.patch(url, headers=HEADERS, json=missing_fields, verify=MEALIE_VERIFY_SSL, timeout=REQUEST_TIMEOUT)
 
     if response.status_code == 200:
         print(f"✅ Successfully updated recipe: {recipe['name']}")
