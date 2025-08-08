@@ -4,7 +4,7 @@ database.json
 mappings.json
 mappings_old.json
 api_keys.json
-#.env
+.env
 data/
 
 # Ignore IDE files
